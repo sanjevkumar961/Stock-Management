@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://script.google.com/macros/s/AKfycbwdNbwky05HR_Oo1i5VxqK_z25cCdWEFkwmUiOBIIdvN-rPgRTq107DjFI86FLcc4ENXA/exec';
+export const BASE_URL = process.env.BACKEND_BASE_URL;
 
 /* ===========================
    GET requests

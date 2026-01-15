@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { apiPost, apiGet } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../component/ToastContext';
+import { enqueueTransaction } from '../component/offlineQueue';
 
 export default function NewTransaction() {
   const { user } = useAuth();
+  const { showToast } = useToast();
+
   const [form, setForm] = useState({
     material_code: '',
     quantity: '',
@@ -15,18 +19,29 @@ export default function NewTransaction() {
 
   const [materials, setMaterials] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start with loading
 
+  /* ===============================
+     Data Load (wait for both APIs)
+  ================================ */
   useEffect(() => {
     if (!user) return;
 
-    apiGet('materials', user).then(res => { if (res.success) setMaterials(res.data); });
+    setLoading(true);
 
-    apiGet('warehouses', user).then(res => {
+    const materialsPromise = apiGet('materials', user).then(res => {
+      if (res.success) setMaterials(res.data);
+    });
+
+    const warehousesPromise = apiGet('warehouses', user).then(res => {
       if (res.success) setWarehouses(res.data);
     });
+
+    Promise.all([materialsPromise, warehousesPromise])
+      .finally(() => setLoading(false)); // loading false only after both finish
   }, [user]);
 
+  /* Reset warehouses when material/action changes */
   useEffect(() => {
     setForm(f => ({
       ...f,
@@ -35,23 +50,21 @@ export default function NewTransaction() {
     }));
   }, [form.material_code, form.action]);
 
+  /* Role safety */
   useEffect(() => {
     if (form.action === 'adjust_stock' && user?.role !== 'manager') {
-      setForm(f => ({
-        ...f,
-        action: 'stock_in'
-      }));
+      setForm(f => ({ ...f, action: 'stock_in' }));
     }
-  }, [user?.role, form.action]);
+  }, [form.action, user?.role]);
 
+  /* ===============================
+     Derived Data
+  ================================ */
+  const selectedMaterial = useMemo(
+    () => materials.find(m => m.material_code === form.material_code),
+    [materials, form.material_code]
+  );
 
-
-  // 1️⃣ Find selected material
-  const selectedMaterial = useMemo(() => {
-    return materials.find(m => m.material_code === form.material_code);
-  }, [materials, form.material_code]);
-
-  // 2️⃣ Aggregate stock by warehouse for the selected material
   const stockByWarehouse = useMemo(() => {
     if (!selectedMaterial) return {};
     return materials
@@ -62,94 +75,80 @@ export default function NewTransaction() {
       }, {});
   }, [materials, selectedMaterial]);
 
-  // 3️⃣ Warehouses that have stock (for stock_out)
   const fromWarehouseOptions = useMemo(() => {
     if (!form.material_code) return [];
+    if (form.action === 'stock_in') return warehouses;
 
-    if (form.action === 'stock_in') return warehouses; // all warehouses for stock_in
-
-    // stock_out or stock_used
     return warehouses.filter(
       w => (stockByWarehouse[w.warehouse_id] || 0) > 0
     );
   }, [warehouses, stockByWarehouse, form.material_code, form.action]);
 
-  // 4️⃣ To warehouse options
   const toWarehouseOptions = useMemo(() => {
     if (!form.material_code) return [];
-
-    if (form.action === 'stock_out') return []; // no to warehouse
+    if (form.action === 'stock_out') return [];
 
     if (form.action === 'transfer_stock') {
-      // exclude the from warehouse
       return warehouses.filter(w => w.warehouse_id !== form.from_warehouse);
     }
 
-    return warehouses; // for stock_in, show all
+    return warehouses;
   }, [warehouses, form.action, form.from_warehouse, form.material_code]);
 
-
+  /* ===============================
+     Validation
+  ================================ */
   function isFormValid() {
-    if (!form.material_code) return false;
-
     const qty = Number(form.quantity);
-    if (!qty || qty <= 0) return false;
+    if (!form.material_code || !qty || qty <= 0) return false;
 
-    if (form.action === 'stock_in') {
-      return !!form.to_warehouse;
-    }
-
-    if (form.action === 'stock_out') {
-      return !!form.from_warehouse;
-    }
-
-    if (form.action === 'transfer_stock') {
+    if (form.action === 'stock_in') return !!form.to_warehouse;
+    if (form.action === 'stock_out') return !!form.from_warehouse;
+    if (form.action === 'transfer_stock')
       return !!form.from_warehouse && !!form.to_warehouse;
-    }
 
-    if (form.action === 'adjust_stock') {
+    if (form.action === 'adjust_stock')
       return !!form.from_warehouse && form.remarks.trim().length > 0;
-    }
 
     return false;
   }
 
+  /* ===============================
+     Submit
+  ================================ */
   async function submit() {
     if (loading) return;
     setLoading(true);
 
+    let payload = null;
+
     try {
       const qty = Number(form.quantity);
 
-      const payload = {
+      payload = {
         material_code: form.material_code.trim(),
         quantity: qty,
         remarks: form.remarks?.trim() || ''
       };
 
-      // Stock availability check
       if (
         (form.action === 'stock_out' || form.action === 'transfer_stock') &&
         form.from_warehouse
       ) {
         const available = stockByWarehouse[form.from_warehouse] || 0;
         if (qty > available) {
-          alert(`Insufficient stock. Available: ${available}`);
+          showToast(`Insufficient stock. Available: ${available}`, 'error');
           return;
         }
       }
 
-      if (form.action === 'stock_in') {
-        payload.to_warehouse = form.to_warehouse;
-      }
-
+      if (form.action === 'stock_in') payload.to_warehouse = form.to_warehouse;
       if (
         form.action === 'stock_out' ||
         form.action === 'stock_used' ||
         form.action === 'adjust_stock'
-      ) {
+      )
         payload.from_warehouse = form.from_warehouse;
-      }
 
       if (form.action === 'transfer_stock') {
         payload.from_warehouse = form.from_warehouse;
@@ -157,113 +156,155 @@ export default function NewTransaction() {
       }
 
       const res = await apiPost(form.action, payload, user);
-      alert(res.success ? 'Saved' : res.error);
 
-      // Optional reset
       if (res.success) {
-        setForm(f => ({
-          ...f,
-          quantity: '',
-          remarks: ''
-        }));
+        showToast('Transaction saved', 'success');
+      } else {
+        throw new Error(res.error);
       }
     } catch (err) {
-      console.error(err);
-      alert('Error submitting transaction');
+      if (!payload) {
+        showToast('Failed to prepare transaction', 'error');
+        return;
+      }
+      enqueueTransaction({ action: form.action, payload, user });
+      showToast('Offline: Transaction queued', 'info');
     } finally {
       setLoading(false);
     }
   }
 
+  /* ===============================
+     UI
+  ================================ */
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: 32 }}>Loading…</div>;
+  }
 
   return (
-    <>
-      <select
-        value={form.material_code}
-        onChange={e => setForm({ ...form, material_code: e.target.value })}
-      >
-        <option value="">Select material</option>
-        {/* Show only unique materials in the dropdown */}
-        {Array.from(
-          new Map(materials.map(m => [m.material_code, m])).values()
-        ).map(m => (
-          <option key={m.material_code} value={m.material_code}>
-            {m.material_name}
-          </option>
-        ))}
-      </select>
+    <div style={styles.container}>
+      <h2>New Transaction</h2>
 
-      <input
-        type="number"
-        placeholder="Quantity"
-        value={form.quantity}
-        onChange={e => setForm({ ...form, quantity: e.target.value })}
-      />
+      <div style={styles.card}>
+        <label>Material</label>
+        <select
+          value={form.material_code}
+          onChange={e => setForm({ ...form, material_code: e.target.value })}
+        >
+          <option value="">Select material</option>
+          {Array.from(
+            new Map(materials.map(m => [m.material_code, m])).values()
+          ).map(m => (
+            <option key={m.material_code} value={m.material_code}>
+              {m.material_name}
+            </option>
+          ))}
+        </select>
 
-      <select
-        value={form.action}
-        onChange={e => setForm({ ...form, action: e.target.value })}
-      >
-        <option value="stock_in">Stock In</option>
-        <option value="stock_out">Stock Out</option>
-        <option value="transfer_stock">Transfer</option>
+        <label>Action</label>
+        <select
+          value={form.action}
+          onChange={e => setForm({ ...form, action: e.target.value })}
+        >
+          <option value="stock_in">Stock In</option>
+          <option value="stock_out">Stock Out</option>
+          <option value="transfer_stock">Transfer</option>
+          {user?.role === 'manager' && (
+            <option value="adjust_stock">Adjust Stock</option>
+          )}
+        </select>
 
-        {/* 🔐 Managers only */}
-        {user?.role === 'manager' && (
-          <option value="adjust_stock">Adjust Stock</option>
+        {form.action !== 'stock_in' && (
+          <>
+            <label>From Warehouse</label>
+            <select
+              value={form.from_warehouse}
+              onChange={e =>
+                setForm({ ...form, from_warehouse: e.target.value })
+              }
+              disabled={!form.material_code}
+            >
+              <option value="">Select warehouse</option>
+              {fromWarehouseOptions.map(w => (
+                <option key={w.warehouse_id} value={w.warehouse_id}>
+                  {w.warehouse_name}
+                </option>
+              ))}
+            </select>
+          </>
         )}
-      </select>
 
-      {form.action !== 'stock_in' && (
-        <select
-          value={form.from_warehouse}
-          onChange={e =>
-            setForm({ ...form, from_warehouse: e.target.value })
-          }
-          disabled={!form.material_code}
+        {form.action !== 'stock_out' && form.action !== 'adjust_stock' && (
+          <>
+            <label>To Warehouse</label>
+            <select
+              value={form.to_warehouse}
+              onChange={e =>
+                setForm({ ...form, to_warehouse: e.target.value })
+              }
+              disabled={
+                !form.material_code ||
+                (form.action === 'transfer_stock' && !form.from_warehouse)
+              }
+            >
+              <option value="">Select warehouse</option>
+              {toWarehouseOptions.map(w => (
+                <option key={w.warehouse_id} value={w.warehouse_id}>
+                  {w.warehouse_name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        <label>Quantity</label>
+        <input
+          type="number"
+          value={form.quantity}
+          onChange={e => setForm({ ...form, quantity: e.target.value })}
+        />
+
+        <label>
+          Remarks {form.action === 'adjust_stock' && '(required)'}
+        </label>
+        <textarea
+          value={form.remarks}
+          onChange={e => setForm({ ...form, remarks: e.target.value })}
+        />
+
+        <button
+          onClick={submit}
+          disabled={!isFormValid() || loading}
+          style={styles.button}
         >
-          <option value="">From Warehouse</option>
-          {fromWarehouseOptions.map(w => (
-            <option key={w.warehouse_id} value={w.warehouse_id}>
-              {w.warehouse_name}
-            </option>
-          ))}
-        </select>
-      )}
-
-      {form.action !== 'stock_out' && form.action !== 'adjust_stock' && (
-        <select
-          value={form.to_warehouse}
-          onChange={e =>
-            setForm({ ...form, to_warehouse: e.target.value })
-          }
-          disabled={
-            !form.material_code ||
-            (form.action === 'transfer_stock' && !form.from_warehouse)
-          }
-        >
-          <option value="">To Warehouse</option>
-          {toWarehouseOptions.map(w => (
-            <option key={w.warehouse_id} value={w.warehouse_id}>
-              {w.warehouse_name}
-            </option>
-          ))}
-        </select>
-      )}
-      <textarea
-        placeholder={
-          form.action === 'adjust_stock'
-            ? 'Remarks (required for adjustment)'
-            : 'Remarks (optional)'
-        }
-        value={form.remarks}
-        onChange={e => setForm({ ...form, remarks: e.target.value })}
-      />
-
-      <button disabled={!isFormValid()} onClick={submit}>
-        Submit
-      </button>
-
-    </>
+          {loading ? 'Saving…' : 'Submit'}
+        </button>
+      </div>
+    </div>
   );
 }
+
+/* ===============================
+   Styles
+================================ */
+const styles = {
+  container: {
+    padding: 16,
+    maxWidth: 520,
+    margin: '0 auto'
+  },
+  card: {
+    display: 'grid',
+    gap: 12,
+    padding: 16,
+    borderRadius: 10,
+    border: '1px solid #ddd',
+    background: '#fff'
+  },
+  button: {
+    marginTop: 12,
+    padding: '12px 16px',
+    fontSize: 16,
+    fontWeight: 600
+  }
+};
