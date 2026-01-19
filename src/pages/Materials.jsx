@@ -3,14 +3,14 @@ import { apiGet } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Materials() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
-    apiGet('materials', user).then(res => {
+    apiGet('materials', user, logout).then(res => {
       if (!mounted) return;
       if (res.success) setMaterials(res.data);
       setLoading(false);
@@ -19,7 +19,7 @@ export default function Materials() {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, logout]);
 
   if (loading) {
     return <div style={styles.center}>Loading materials…</div>;

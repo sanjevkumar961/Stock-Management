@@ -3,7 +3,7 @@ import { apiGet } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Transactions() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [rows, setRows] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,8 +15,8 @@ export default function Transactions() {
     let mounted = true;
 
     Promise.all([
-      apiGet('transactions', user),
-      apiGet('materials', user)
+      apiGet('transactions', user, logout),
+      apiGet('materials', user, logout)
     ]).then(([txRes, matRes]) => {
       if (!mounted) return;
 
@@ -34,7 +34,7 @@ export default function Transactions() {
     });
 
     return () => (mounted = false);
-  }, [user]);
+  }, [user, logout]);
 
   /* ===============================
      Derived Data
@@ -87,7 +87,7 @@ export default function Transactions() {
                 <td>{t.from_warehouse || '-'}</td>
                 <td>{t.to_warehouse || '-'}</td>
                 <td>{t.user_email}</td>
-                <td>{formatDate(t.date_time)}</td>
+                <td>{formatDate(t.timestamp)}</td>
                 <td>{t.remarks || '-'}</td>
               </tr>
             ))}
@@ -109,7 +109,7 @@ export default function Transactions() {
             <div style={styles.row}>To: {t.to_warehouse || '-'}</div>
             <div style={styles.row}>User: {t.user_email}</div>
             <div style={styles.row}>
-              Date: {formatDate(t.date_time)}
+              Date: {formatDate(t.timestamp)}
             </div>
 
             {t.remarks && (

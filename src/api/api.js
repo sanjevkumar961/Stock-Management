@@ -1,4 +1,5 @@
 export const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+// export const BASE_URL = "https://script.google.com/macros/s/AK";
 
 if (!BASE_URL) {
   throw new Error('REACT_APP_BACKEND_BASE_URL is not defined');
@@ -7,7 +8,7 @@ if (!BASE_URL) {
 /* ===========================
    GET requests
 =========================== */
-export async function apiGet(op, user, params = {}) {
+export async function apiGet(op, user, logout, params = {}) {
   const url = new URL(BASE_URL);
   url.searchParams.set('op', op);
   url.searchParams.set('user_email', user.email);
@@ -18,16 +19,21 @@ export async function apiGet(op, user, params = {}) {
   );
 
   const res = await fetch(url);
-  return res.json();
+  const data = await res.json();
+
+  if (data.error === 'auth_required' || data.error === 'session_expired') {
+    logout();
+  }
+
+  return data;
 }
 
 /* ===========================
    POST requests
 =========================== */
-export async function apiPost(action, data, user) {
+export async function apiPost(action, payload, user, logout) {
   const url = new URL(BASE_URL);
 
-  // ✅ token passed as query parameter
   url.searchParams.set('user_email', user.email);
   url.searchParams.set('id_token', user.token);
 
@@ -36,10 +42,16 @@ export async function apiPost(action, data, user) {
     body: JSON.stringify({
       data: {
         action,
-        ...data
+        ...payload
       }
     })
   });
 
-  return res.json();
+  const data = await res.json();
+
+  if (data.error === 'auth_required' || data.error === 'session_expired') {
+    logout();
+  }
+
+  return data;
 }

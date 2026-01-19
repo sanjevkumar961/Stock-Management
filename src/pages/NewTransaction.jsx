@@ -5,7 +5,7 @@ import { useToast } from '../component/ToastContext';
 import { enqueueTransaction } from '../component/offlineQueue';
 
 export default function NewTransaction() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { showToast } = useToast();
 
   const [form, setForm] = useState({
@@ -29,17 +29,17 @@ export default function NewTransaction() {
 
     setLoading(true);
 
-    const materialsPromise = apiGet('materials', user).then(res => {
+    const materialsPromise = apiGet('materials', user, logout).then(res => {
       if (res.success) setMaterials(res.data);
     });
 
-    const warehousesPromise = apiGet('warehouses', user).then(res => {
+    const warehousesPromise = apiGet('warehouses', user, logout).then(res => {
       if (res.success) setWarehouses(res.data);
     });
 
     Promise.all([materialsPromise, warehousesPromise])
       .finally(() => setLoading(false)); // loading false only after both finish
-  }, [user]);
+  }, [user, logout]);
 
   /* Reset warehouses when material/action changes */
   useEffect(() => {
