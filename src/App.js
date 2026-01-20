@@ -7,6 +7,7 @@ import Login from './pages/login';
 import Materials from './pages/Materials';
 import Transactions from './pages/Transactions';
 import NewTransaction from './pages/NewTransaction';
+import TransferStock from './pages/TransferStock';
 
 
 function RequireAuth({ children }) {
@@ -52,6 +53,9 @@ function Layout({ children }) {
               <NavLink to="/new" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
                 New Transaction
               </NavLink>
+              <NavLink to="/transfer" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                Transfer Stock
+              </NavLink>
               {user.role === 'manager' && (
                 <NavLink to="/transactions" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
                   Transactions
@@ -95,6 +99,14 @@ export default function App() {
                 element={
                   <RequireAuth>
                     <NewTransaction />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/transfer"
+                element={
+                  <RequireAuth>
+                    <TransferStock />
                   </RequireAuth>
                 }
               />

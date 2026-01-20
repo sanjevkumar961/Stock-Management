@@ -29,16 +29,14 @@ export default function NewTransaction() {
 
     setLoading(true);
 
-    const materialsPromise = apiGet('materials', user, logout).then(res => {
-      if (res.success) setMaterials(res.data);
-    });
-
-    const warehousesPromise = apiGet('warehouses', user, logout).then(res => {
-      if (res.success) setWarehouses(res.data);
-    });
-
-    Promise.all([materialsPromise, warehousesPromise])
-      .finally(() => setLoading(false)); // loading false only after both finish
+    Promise.all([
+      apiGet('materials', user, logout).then(res => {
+        if (res.success) setMaterials(res.data);
+      }),
+      apiGet('warehouses', user, logout).then(res => {
+        if (res.success) setWarehouses(res.data);
+      })
+    ]).finally(() => setLoading(false));
   }, [user, logout]);
 
   /* Reset warehouses when material/action changes */
@@ -84,17 +82,6 @@ export default function NewTransaction() {
     );
   }, [warehouses, stockByWarehouse, form.material_code, form.action]);
 
-  const toWarehouseOptions = useMemo(() => {
-    if (!form.material_code) return [];
-    if (form.action === 'stock_out') return [];
-
-    if (form.action === 'transfer_stock') {
-      return warehouses.filter(w => w.warehouse_id !== form.from_warehouse);
-    }
-
-    return warehouses;
-  }, [warehouses, form.action, form.from_warehouse, form.material_code]);
-
   /* ===============================
      Validation
   ================================ */
@@ -104,11 +91,10 @@ export default function NewTransaction() {
 
     if (form.action === 'stock_in') return !!form.to_warehouse;
     if (form.action === 'stock_out') return !!form.from_warehouse;
-    if (form.action === 'transfer_stock')
-      return !!form.from_warehouse && !!form.to_warehouse;
 
-    if (form.action === 'adjust_stock')
+    if (form.action === 'adjust_stock') {
       return !!form.from_warehouse && form.remarks.trim().length > 0;
+    }
 
     return false;
   }
@@ -131,10 +117,7 @@ export default function NewTransaction() {
         remarks: form.remarks?.trim() || ''
       };
 
-      if (
-        (form.action === 'stock_out' || form.action === 'transfer_stock') &&
-        form.from_warehouse
-      ) {
+      if (form.action === 'stock_out' && form.from_warehouse) {
         const available = stockByWarehouse[form.from_warehouse] || 0;
         if (qty > available) {
           showToast(`Insufficient stock. Available: ${available}`, 'error');
@@ -142,17 +125,12 @@ export default function NewTransaction() {
         }
       }
 
-      if (form.action === 'stock_in') payload.to_warehouse = form.to_warehouse;
-      if (
-        form.action === 'stock_out' ||
-        form.action === 'stock_used' ||
-        form.action === 'adjust_stock'
-      )
-        payload.from_warehouse = form.from_warehouse;
-
-      if (form.action === 'transfer_stock') {
-        payload.from_warehouse = form.from_warehouse;
+      if (form.action === 'stock_in') {
         payload.to_warehouse = form.to_warehouse;
+      }
+
+      if (form.action === 'stock_out' || form.action === 'adjust_stock') {
+        payload.from_warehouse = form.from_warehouse;
       }
 
       const res = await apiPost(form.action, payload, user);
@@ -208,7 +186,6 @@ export default function NewTransaction() {
         >
           <option value="stock_in">Stock In</option>
           <option value="stock_out">Stock Out</option>
-          <option value="transfer_stock">Transfer</option>
           {user?.role === 'manager' && (
             <option value="adjust_stock">Adjust Stock</option>
           )}
@@ -234,7 +211,7 @@ export default function NewTransaction() {
           </>
         )}
 
-        {form.action !== 'stock_out' && form.action !== 'adjust_stock' && (
+        {form.action === 'stock_in' && (
           <>
             <label>To Warehouse</label>
             <select
@@ -242,13 +219,9 @@ export default function NewTransaction() {
               onChange={e =>
                 setForm({ ...form, to_warehouse: e.target.value })
               }
-              disabled={
-                !form.material_code ||
-                (form.action === 'transfer_stock' && !form.from_warehouse)
-              }
             >
               <option value="">Select warehouse</option>
-              {toWarehouseOptions.map(w => (
+              {warehouses.map(w => (
                 <option key={w.warehouse_id} value={w.warehouse_id}>
                   {w.warehouse_name}
                 </option>

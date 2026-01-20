@@ -1,5 +1,5 @@
 export const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
-// export const BASE_URL = "https://script.google.com/macros/s/AK";
+// export const BASE_URL = "https://script.google.com/macros/s/AKfycbwdNbwLcc4ENXA/exec";
 
 if (!BASE_URL) {
   throw new Error('REACT_APP_BACKEND_BASE_URL is not defined');

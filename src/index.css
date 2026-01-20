@@ -13,3 +13,204 @@
   .mobile-only { display: none; }
 }
 
+/* =========================
+   PRINT SETTINGS
+========================= */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .dc-print-wrapper,
+  .dc-print-wrapper * {
+    visibility: visible;
+  }
+
+  .dc-print-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+}
+
+/* =========================
+   DC LAYOUT
+========================= */
+
+.dc-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 16mm;
+  margin: auto;
+  background: #fff;
+}
+
+@media print {
+  body {
+    background: none;
+  }
+
+  .dc-page {
+    page-break-after: always;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.dc-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.dc-header h2 {
+  margin-bottom: 6px;
+}
+
+.company-name {
+  margin-top: 8px;
+}
+
+/* =========================
+   DC META (No & Date)
+========================= */
+
+.dc-meta {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  font-weight: bold;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.dc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.dc-table th,
+.dc-table td {
+  border: 1px solid #000;
+  padding: 6px;
+}
+
+.dc-table th {
+  text-align: center;
+}
+
+.dc-table td:nth-child(1),
+.dc-table td:nth-child(3) {
+  text-align: center;
+}
+
+.dc-table tr {
+  page-break-inside: avoid;
+}
+
+/* =========================
+   FOOTER ALIGNMENT
+========================= */
+
+.dc-footer-right {
+  text-align: right;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+/* =========================
+   SIGNATURE BLOCK
+========================= */
+
+.sign {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 50px;
+}
+
+.page {
+  padding: 16px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.page-title {
+  margin-bottom: 12px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row-card {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr auto;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+input, select, button {
+  padding: 10px;
+  font-size: 16px;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #ccc;
+}
+
+.icon-btn {
+  background: #eee;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 12px;
+  box-shadow: 0 -2px 6px rgba(0,0,0,.1);
+}

@@ -1,25 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { apiGet } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Materials() {
   const { user, logout } = useAuth();
   const [materials, setMaterials] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     let mounted = true;
 
-    apiGet('materials', user, logout).then(res => {
+    Promise.all([
+      apiGet('warehouses', user, logout),
+      apiGet('materials', user, logout)
+    ]).then(([whRes, matRes]) => {
       if (!mounted) return;
-      if (res.success) setMaterials(res.data);
+
+      if (whRes.success) setWarehouses(whRes.data);
+
+      if (matRes.success) {
+        const map = new Map();
+        matRes.data.forEach(m => {
+          if (!map.has(m.material_code)) map.set(m.material_code, m);
+        });
+        setMaterials([...map.values()]);
+      }      
+
       setLoading(false);
     });
 
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, [user, logout]);
+
+  /* ===============================
+     Derived Data
+  ================================ */
+  const rowsWithWarehouseName = useMemo(() => {
+    if (!warehouses.length || !materials.length) return [];
+    return materials.map(r => ({
+      ...r,
+      warehouse_name:
+        warehouses.find(w => w.warehouse_id === r.warehouse_id)
+          ?.warehouse_name || r.warehouse_id
+    }));
+  }, [warehouses, materials]);
 
   if (loading) {
     return <div style={styles.center}>Loading materials…</div>;
@@ -45,10 +71,10 @@ export default function Materials() {
             </tr>
           </thead>
           <tbody>
-            {materials.map(m => (
+            {rowsWithWarehouseName.map(m => (
               <tr key={`${m.material_code}-${m.warehouse_id}`}>
                 <td>{m.material_name}</td>
-                <td>{m.warehouse_id}</td>
+                <td>{m.warehouse_name}</td>
                 <td>{m.current_stock}</td>
                 <td>
                   <StatusBadge ok={m.stock_ok === 'OK'} />
@@ -61,11 +87,11 @@ export default function Materials() {
 
       {/* Mobile */}
       <div className="mobile-only" style={styles.cards}>
-        {materials.map(m => (
+        {rowsWithWarehouseName.map(m => (
           <div key={`${m.material_code}-${m.warehouse_id}`} style={styles.card}>
             <strong>{m.material_name}</strong>
 
-            <div style={styles.meta}>Warehouse: {m.warehouse_id}</div>
+            <div style={styles.meta}>Warehouse: {m.warehouse_name}</div>
             <div style={styles.meta}>Stock: {m.current_stock}</div>
 
             <StatusBadge ok={m.stock_ok === 'OK'} />
