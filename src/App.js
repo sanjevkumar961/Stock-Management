@@ -8,6 +8,7 @@ import Materials from './pages/Materials';
 import Transactions from './pages/Transactions';
 import NewTransaction from './pages/NewTransaction';
 import TransferStock from './pages/TransferStock';
+import ReprintDC from './pages/ReprintDC';
 
 
 function RequireAuth({ children }) {
@@ -57,9 +58,14 @@ function Layout({ children }) {
                 Transfer Stock
               </NavLink>
               {user.role === 'manager' && (
-                <NavLink to="/transactions" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
-                  Transactions
-                </NavLink>
+                <>
+                  <NavLink to="/transactions" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                    Transactions
+                  </NavLink>
+                  <NavLink to="/reprintdc" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                    Reprint DC
+                  </NavLink>
+                </>
               )}
             </nav>
 
@@ -115,6 +121,14 @@ export default function App() {
                 element={
                   <RequireManager>
                     <Transactions />
+                  </RequireManager>
+                }
+              />
+              <Route
+                path="/reprintdc"
+                element={
+                  <RequireManager>
+                    <ReprintDC />
                   </RequireManager>
                 }
               />

@@ -1,3 +1,7 @@
+/* =========================
+   RESPONSIVE HELPERS
+========================= */
+
 .mobile-only {
   display: block;
 }
@@ -29,8 +33,7 @@
 
   .dc-print-wrapper {
     position: absolute;
-    left: 0;
-    top: 0;
+    inset: 0;
     width: 100%;
   }
 
@@ -42,10 +45,18 @@
     size: A4;
     margin: 20mm;
   }
+
+  body {
+    background: none;
+  }
+
+  .dc-page {
+    page-break-after: always;
+  }
 }
 
 /* =========================
-   DC LAYOUT
+   DC PAGE
 ========================= */
 
 .dc-page {
@@ -54,20 +65,11 @@
   padding: 16mm;
   margin: auto;
   background: #fff;
+  font-size: 14px;
 }
 
-@media print {
-  body {
-    background: none;
-  }
-
-  .dc-page {
-    page-break-after: always;
-  }
-
-  .no-print {
-    display: none !important;
-  }
+.dc-page {
+  position: relative;
 }
 
 /* =========================
@@ -86,6 +88,34 @@
 .company-name {
   margin-top: 8px;
 }
+
+.dc-watermark {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 80px;
+  font-weight: 700;
+  color: rgba(200, 0, 0, 0.15);
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.dc-verified-stamp {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  border: 2px solid #c00;
+  color: #c00;
+  padding: 6px 12px;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  transform: rotate(-5deg);
+}
+
 
 /* =========================
    DC META (No & Date)
@@ -112,14 +142,6 @@
 .dc-table td {
   border: 1px solid #000;
   padding: 6px;
-}
-
-.dc-table th {
-  text-align: center;
-}
-
-.dc-table td:nth-child(1),
-.dc-table td:nth-child(3) {
   text-align: center;
 }
 
@@ -128,24 +150,55 @@
 }
 
 /* =========================
-   FOOTER ALIGNMENT
+   TOTALS SECTION
 ========================= */
 
-.dc-footer-right {
+.dc-totals {
+  width: 40%;
+  margin-left: auto;
+  margin-top: 16px;
+}
+
+.dc-totals table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dc-totals td {
+  border: 1px solid #000;
+  padding: 6px;
   text-align: right;
-  margin-top: 20px;
+}
+
+.dc-totals td:first-child {
+  text-align: left;
+}
+
+.grand-total td {
+  font-size: 15px;
   font-weight: bold;
 }
 
 /* =========================
-   SIGNATURE BLOCK
+   FOOTER & SIGNATURES
 ========================= */
+
+.dc-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+  font-weight: bold;
+}
 
 .sign {
   display: flex;
   justify-content: space-between;
   margin-top: 50px;
 }
+
+/* =========================
+   GENERAL UI (NON-PRINT)
+========================= */
 
 .page {
   padding: 16px;
@@ -162,7 +215,7 @@
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
 }
 
 .grid-2 {
@@ -184,7 +237,9 @@
   margin-top: 10px;
 }
 
-input, select, button {
+input,
+select,
+button {
   padding: 10px;
   font-size: 16px;
 }
@@ -212,5 +267,5 @@ input, select, button {
   bottom: 0;
   background: #fff;
   padding: 12px;
-  box-shadow: 0 -2px 6px rgba(0,0,0,.1);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, .1);
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiGet, apiPost } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../component/ToastContext';
@@ -33,7 +33,7 @@ export default function TransferStock() {
             if (w.success) setWarehouses(w.data);
             setLoading(false);
         });
-    }, [user, fromWh]);
+    }, [user]);
 
     const availableMaterials = fromWh
         ? materials.filter(m => m.warehouse_id === fromWh && m.current_stock > 0)
@@ -57,7 +57,18 @@ export default function TransferStock() {
         );
     }
 
+    function getMaterialPrice(materialCode) {
+        const mat = materials.find(
+            m => m.material_code === materialCode && m.warehouse_id === fromWh
+        );
+        return mat ? Number(mat.price) : 0;
+    }
+
     function addRow() {
+        if (!fromWh) {
+            showToast('Select From Warehouse first', 'error');
+            return;
+        }
         setRows(r => [...r, { material_code: '', quantity: '', remarks: '' }]);
     }
 
@@ -78,25 +89,40 @@ export default function TransferStock() {
         setRows(rows.filter((_, idx) => idx !== i));
     }
 
+    const toWarehouseOptions = useMemo(() => {
+            return warehouses.filter(w => w.warehouse_id !== fromWh);
+    }, [warehouses, fromWh]);
+
     async function submit() {
         if (submitting) return;
         setSubmitting(true);
-        if (!fromWh || !toWh || fromWh === toWh) {
-            showToast('Select valid warehouses', 'error');
-            return;
-        }
-        if (!rows.length) {
-            showToast('Add at least one material', 'error');
-            return;
-        }
-        for (const r of rows) {
-            const max = getCurrentStock(r.material_code);
-            if (r.quantity <= 0 || r.quantity > max) {
-                showToast(`Invalid quantity for material ${r.material_code}`, 'error');
-                return;
-            }
-        }
+
         try {
+            if (!fromWh || !toWh || fromWh === toWh) {
+                throw new Error('Select valid warehouses');
+            }
+
+            if (!rows.length) {
+                throw new Error('Add at least one material');
+            }
+
+            for (const r of rows) {
+                const max = getCurrentStock(r.material_code);
+                if (r.quantity <= 0 || r.quantity > max) {
+                    throw new Error(`Invalid quantity for material ${r.material_code}`);
+                }
+            }
+
+            const enrichedRows = rows.map(r => {
+                const price = getMaterialPrice(r.material_code);
+                const qty = Number(r.quantity) || 0;
+                return {
+                    ...r,
+                    price,
+                    amount: price * qty
+                };
+            });
+
             const res = await apiPost(
                 'transfer_stock_bulk',
                 {
@@ -104,7 +130,7 @@ export default function TransferStock() {
                     to_warehouse: toWh,
                     to_ms: toMs,
                     prepared_by: preparedBy,
-                    items: rows
+                    items: enrichedRows
                 },
                 user
             );
@@ -113,18 +139,21 @@ export default function TransferStock() {
 
             setDcData({
                 dc_no: res.result.dc_no,
-                rows,
+                rows: enrichedRows,
                 fromWh,
                 toWh,
                 toMs,
-                preparedBy: preparedBy,
+                preparedBy,
                 date: new Date()
             });
-
             showToast('Transfer completed. DC ready', 'success');
         } catch (e) {
             showToast(e.message || 'Transfer failed', 'error');
         } finally {
+            setRows([]);
+            setFromWh('');
+            setToWh('');
+            setToMs('');
             setSubmitting(false);
         }
     }
@@ -149,7 +178,7 @@ export default function TransferStock() {
 
                     <select value={toWh} onChange={e => setToWh(e.target.value)}>
                         <option value="">To Warehouse</option>
-                        {warehouses.map(w => (
+                        {toWarehouseOptions.map(w => (
                             <option key={w.warehouse_id} value={w.warehouse_id}>
                                 {w.warehouse_name}
                             </option>
@@ -236,11 +265,14 @@ export default function TransferStock() {
 
             {/* Actions */}
             <div className="action-bar">
-                <button className="btn-primary" onClick={submit}>
-                    Submit & Generate DC
+                <button
+                    className="btn-primary"
+                    onClick={submit}
+                    disabled={submitting}
+                >
+                    {submitting ? 'Processing…' : 'Submit & Generate DC'}
                 </button>
             </div>
-
             {dcData && <DeliveryChallan data={dcData} />}
         </div>
     );

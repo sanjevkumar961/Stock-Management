@@ -133,7 +133,7 @@ export default function NewTransaction() {
         payload.from_warehouse = form.from_warehouse;
       }
 
-      const res = await apiPost(form.action, payload, user);
+      const res = await apiPost(form.action, payload, user, logout);
 
       if (res.success) {
         showToast('Transaction saved', 'success');
