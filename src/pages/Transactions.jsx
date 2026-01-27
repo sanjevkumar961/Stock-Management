@@ -59,7 +59,7 @@ export default function Transactions() {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Transactions</h2>
+      <h2 style={styles.title}>💳 Transactions Log</h2>
 
       {/* Desktop Table */}
       <div className="desktop-only" style={styles.tableWrapper}>
@@ -74,6 +74,7 @@ export default function Transactions() {
               <th>To</th>
               <th>User</th>
               <th>Date</th>
+              <th>DC NO</th>
               <th>Remarks</th>
             </tr>
           </thead>
@@ -88,6 +89,7 @@ export default function Transactions() {
                 <td>{t.to_warehouse || '-'}</td>
                 <td>{t.user_email}</td>
                 <td>{formatDate(t.timestamp)}</td>
+                <td>{t.dc_no || '-'}</td>
                 <td>{t.remarks || '-'}</td>
               </tr>
             ))}
@@ -96,25 +98,21 @@ export default function Transactions() {
       </div>
 
       {/* Mobile Cards */}
-      <div className="mobile-only" style={styles.cards}>
+      <div className="mobile-only">
         {rowsWithMaterialName.map(t => (
           <div key={t.txn_id} style={styles.card}>
             <div style={styles.cardHeader}>
-              <strong>{t.material_name}</strong>
-              <span style={styles.qty}>{t.quantity}</span>
+              <strong style={{ fontSize: 16, color: '#1a1a1a' }}>{t.material_name}</strong>
+              <span style={styles.qty}>Qty: {t.quantity}</span>
             </div>
 
-            <div style={styles.row}>Type: {formatType(t.type)}</div>
-            <div style={styles.row}>From: {t.from_warehouse || '-'}</div>
-            <div style={styles.row}>To: {t.to_warehouse || '-'}</div>
-            <div style={styles.row}>User: {t.user_email}</div>
-            <div style={styles.row}>
-              Date: {formatDate(t.timestamp)}
-            </div>
-
-            {t.remarks && (
-              <div style={styles.remarks}>{t.remarks}</div>
-            )}
+            <div style={styles.row}>📤 Type: <strong>{formatType(t.type)}</strong></div>
+            {t.from_warehouse && (<div style={styles.row}>📍 From: {t.from_warehouse}</div>)}
+            <div style={styles.row}>📌 To: {t.to_warehouse || '-'}</div>
+            <div style={styles.row}>👤 User: {t.user_email}</div>
+            <div style={styles.row}>📅 {formatDate(t.timestamp)}</div>
+            {t.dc_no && (<div style={styles.row}>📋 DC NO: <strong>{t.dc_no}</strong></div>)}
+            {t.remarks && (<div style={styles.remarks}>💬 {t.remarks}</div>)}
           </div>
         ))}
       </div>
@@ -138,47 +136,85 @@ function formatType(t) {
    Styles
 ================================ */
 const styles = {
-  container: { padding: 16 },
-  title: { marginBottom: 12 },
-  center: { padding: 24, textAlign: 'center' },
+  container: {
+    padding: '24px',
+    maxWidth: 1200,
+    margin: '0 auto',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+  },
+  title: {
+    marginBottom: 24,
+    fontSize: 32,
+    fontWeight: 700,
+    color: '#1a1a1a',
+    letterSpacing: '-0.5px'
+  },
+  center: {
+    padding: 48,
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666'
+  },
 
-  tableWrapper: { overflowX: 'auto' },
+  tableWrapper: {
+    overflowX: 'auto',
+    borderRadius: 8,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
+  },
   table: {
     width: '100%',
-    borderCollapse: 'collapse'
+    borderCollapse: 'collapse',
+    background: '#fff'
   },
 
   cards: {
     display: 'grid',
-    gap: 12
+    gap: 16
   },
 
   card: {
-    border: '1px solid #ddd',
-    borderRadius: 8,
-    padding: 12,
-    background: '#fff'
+    border: '1px solid #e0e0e0',
+    borderRadius: 12,
+    padding: 18,
+    background: '#fff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    transition: 'all 0.3s ease',
+    cursor: 'pointer'
   },
 
   cardHeader: {
     display: 'flex',
     justifyContent: 'space-between',
-    marginBottom: 6
+    alignItems: 'center',
+    marginBottom: 14,
+    paddingBottom: 12,
+    borderBottom: '1px solid #f0f0f0'
   },
 
   qty: {
-    fontWeight: 700
+    fontWeight: 700,
+    background: '#f0f4f8',
+    color: '#2c3e50',
+    padding: '6px 12px',
+    borderRadius: 8,
+    fontSize: 13
   },
 
   row: {
     fontSize: 14,
-    marginBottom: 4
+    marginBottom: 8,
+    color: '#34495e',
+    lineHeight: 1.5
   },
 
   remarks: {
-    marginTop: 6,
+    marginTop: 12,
     fontSize: 13,
     fontStyle: 'italic',
-    color: '#555'
+    color: '#7f8c8d',
+    padding: '10px',
+    background: '#f8f9fa',
+    borderRadius: 6,
+    borderLeft: '3px solid #3498db'
   }
 };

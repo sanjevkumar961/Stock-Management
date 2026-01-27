@@ -50,52 +50,68 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
-      <form onSubmit={handleLogin} style={styles.card}>
-        <h2 style={styles.title}>Inventory Login</h2>
+      <div style={styles.content}>
+        <div style={styles.header}>
+          <div style={styles.logo}>📦</div>
+          <h1 style={styles.mainTitle}>Stock Management</h1>
+          <p style={styles.subtitle}>Inventory Control System</p>
+        </div>
 
-        <label style={styles.label}>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            autoComplete="username"
-            required
-            style={styles.input}
-          />
-        </label>
+        <form onSubmit={handleLogin} style={styles.card}>
+          <h2 style={styles.cardTitle}>Sign In</h2>
 
-        <label style={styles.label}>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-            style={styles.input}
-          />
-        </label>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              autoComplete="username"
+              required
+              placeholder="your@email.com"
+              style={styles.input}
+            />
+          </div>
 
-        {error && <div style={styles.error}>{error}</div>}
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              placeholder="Enter your password"
+              style={styles.input}
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            ...styles.button,
-            opacity: loading ? 0.7 : 1
-          }}
-        >
-          {loading ? 'Signing in…' : 'Login'}
-        </button>
-      </form>
+          {error && <div style={styles.error}>
+            <span style={styles.errorIcon}>⚠️</span>
+            {error}
+          </div>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              ...styles.button,
+              opacity: loading ? 0.7 : 1,
+              pointerEvents: loading ? 'none' : 'auto'
+            }}
+          >
+            {loading ? '⏳ Signing in…' : '➜ Sign In'}
+          </button>
+        </form>
+
+        <p style={styles.footer}>© 2026 Stock Management System</p>
+      </div>
     </div>
   );
 }
 
 /* ===============================
-   Minimal PWA-friendly styles
+   Modern PWA-friendly styles
 ================================ */
 
 const styles = {
@@ -104,41 +120,114 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16
+    padding: 16,
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+  },
+  content: {
+    width: '100%',
+    maxWidth: 420,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: 32,
+    color: '#fff'
+  },
+  logo: {
+    fontSize: 56,
+    marginBottom: 16
+  },
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: 700,
+    margin: '0 0 8px 0',
+    letterSpacing: '-0.5px'
+  },
+  subtitle: {
+    fontSize: 14,
+    opacity: 0.9,
+    margin: 0,
+    fontWeight: 400
   },
   card: {
     width: '100%',
-    maxWidth: 360,
-    padding: 24,
-    borderRadius: 8,
-    border: '1px solid #ddd',
-    background: '#fff'
+    padding: 32,
+    borderRadius: 12,
+    border: 'none',
+    background: '#fff',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+    marginBottom: 24
   },
-  title: {
-    marginBottom: 20,
-    textAlign: 'center'
+  cardTitle: {
+    marginBottom: 24,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: 700,
+    color: '#1a1a1a',
+    letterSpacing: '-0.3px'
+  },
+  formGroup: {
+    marginBottom: 18
   },
   label: {
     display: 'block',
-    marginBottom: 12,
-    fontSize: 14
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#2c3e50',
+    letterSpacing: '0.2px'
   },
   input: {
     width: '100%',
-    padding: 8,
-    marginTop: 4,
-    fontSize: 14
+    padding: '12px 14px',
+    marginTop: 6,
+    fontSize: 14,
+    border: '1px solid #d0d7e0',
+    borderRadius: 6,
+    background: '#fff',
+    color: '#2c3e50',
+    boxSizing: 'border-box',
+    transition: 'all 0.2s ease',
+    fontFamily: 'inherit'
   },
   button: {
     width: '100%',
-    padding: 10,
-    marginTop: 16,
+    padding: '12px 20px',
+    marginTop: 20,
     fontSize: 15,
-    cursor: 'pointer'
+    fontWeight: 600,
+    cursor: 'pointer',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+    letterSpacing: '0.3px'
   },
   error: {
-    marginTop: 8,
+    marginTop: 16,
+    padding: 12,
+    background: '#ffebee',
     color: '#c62828',
-    fontSize: 13
+    fontSize: 13,
+    borderRadius: 6,
+    border: '1px solid #ef5350',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontWeight: 500
+  },
+  errorIcon: {
+    fontSize: 14
+  },
+  footer: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    margin: 0,
+    fontWeight: 400
   }
 };

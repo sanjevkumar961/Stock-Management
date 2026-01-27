@@ -1,38 +1,74 @@
-.App {
-  text-align: center;
+/* ===============================
+   App Responsive Styles
+================================ */
+
+/* Desktop view - hide hamburger by default */
+.hamburger-btn {
+  display: none !important;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* Mobile view - show nav by default (desktop) */
+@media (min-width: 901px) {
+  .hamburger-btn {
+    display: none !important;
+  }
+  nav {
+    display: flex !important;
+    position: static !important;
+    flex-direction: row !important;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Tablet and mobile view */
+@media (max-width: 900px) {
+  .hamburger-btn {
+    display: block !important;
   }
-  to {
-    transform: rotate(360deg);
+  nav {
+    display: none;
+  }
+  nav[style*="flexDirection: column"] {
+    display: flex !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 640px) {
+  header {
+    padding: 8px;
+  }
+  [style*="headerContent"] {
+    padding: 8px 12px !important;
+  }
+  [style*="brand"] {
+    font-size: 14px;
+  }
+  [style*="brandIcon"] {
+    font-size: 18px;
+  }
+  [style*="user"] {
+    font-size: 12px;
+    gap: 6px;
+  }
+  [style*="userEmail"] {
+    display: none;
+  }
+  [style*="logout"] {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Tablet view */
+@media (min-width: 641px) and (max-width: 900px) {
+  [style*="brand"] {
+    font-size: 16px;
+  }
+  [style*="userEmail"] {
+    display: inline-block;
+  }
+  [style*="logout"] {
+    padding: 8px 14px;
+    font-size: 12px;
   }
 }

@@ -8,7 +8,6 @@ export default function Materials() {
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     let mounted = true;
 
@@ -57,7 +56,7 @@ export default function Materials() {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Materials</h2>
+      <h2 style={styles.title}>📦 Materials Inventory</h2>
 
       {/* Desktop */}
       <div className="desktop-only">
@@ -86,13 +85,13 @@ export default function Materials() {
       </div>
 
       {/* Mobile */}
-      <div className="mobile-only" style={styles.cards}>
+      <div className="mobile-only">
         {rowsWithWarehouseName.map(m => (
           <div key={`${m.material_code}-${m.warehouse_id}`} style={styles.card}>
-            <strong>{m.material_name}</strong>
+            <strong style={{ fontSize: 16, color: '#1a1a1a' }}>{m.material_name}</strong>
 
-            <div style={styles.meta}>Warehouse: {m.warehouse_name}</div>
-            <div style={styles.meta}>Stock: {m.current_stock}</div>
+            <div style={styles.meta}>📍 {m.warehouse_name}</div>
+            <div style={styles.meta}>📦 Stock: <strong style={{ color: '#2c3e50' }}>{m.current_stock}</strong></div>
 
             <StatusBadge ok={m.stock_ok === 'OK'} />
           </div>
@@ -111,11 +110,12 @@ function StatusBadge({ ok }) {
     <span
       style={{
         ...styles.badge,
-        background: ok ? '#e8f5e9' : '#ffebee',
-        color: ok ? '#2e7d32' : '#c62828'
+        background: ok ? '#d4edda' : '#f8d7da',
+        color: ok ? '#155724' : '#721c24',
+        border: `1px solid ${ok ? '#c3e6cb' : '#f5c6cb'}`
       }}
     >
-      {ok ? 'OK' : 'LOW'}
+      {ok ? '✓ OK' : '⚠ LOW'}
     </span>
   );
 }
@@ -126,43 +126,56 @@ function StatusBadge({ ok }) {
 
 const styles = {
   container: {
-    padding: 16,
-    maxWidth: 960,
-    margin: '0 auto'
+    padding: '24px',
+    maxWidth: 1200,
+    margin: '0 auto',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
   },
   title: {
-    marginBottom: 16
+    marginBottom: 24,
+    fontSize: 32,
+    fontWeight: 700,
+    color: '#1a1a1a',
+    letterSpacing: '-0.5px'
   },
   center: {
-    padding: 24,
-    textAlign: 'center'
+    padding: 48,
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666'
   },
   table: {
     width: '100%',
-    borderCollapse: 'collapse'
+    borderCollapse: 'collapse',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
   },
   cards: {
     display: 'grid',
-    gap: 12
+    gap: 16
   },
   card: {
-    border: '1px solid #ddd',
-    borderRadius: 10,
-    padding: 14,
+    border: '1px solid #e0e0e0',
+    borderRadius: 12,
+    padding: 18,
     background: '#fff',
     display: 'grid',
-    gap: 6
+    gap: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    transition: 'all 0.3s ease',
+    cursor: 'pointer'
   },
   meta: {
     fontSize: 14,
-    color: '#555'
+    color: '#666',
+    fontWeight: 500
   },
   badge: {
-    marginTop: 6,
-    padding: '4px 10px',
-    borderRadius: 12,
+    marginTop: 8,
+    padding: '6px 14px',
+    borderRadius: 14,
     fontSize: 12,
-    fontWeight: 600,
-    width: 'fit-content'
+    fontWeight: 700,
+    width: 'fit-content',
+    letterSpacing: '0.3px'
   }
 };

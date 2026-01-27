@@ -17,8 +17,8 @@ export function DeliveryChallan({ data }) {
 
     return (
         <div className="dc-print-wrapper">
-            <button className="no-print" onClick={() => window.print()}>
-                Print DC
+            <button className="no-print dc-print-button" onClick={() => window.print()}>
+                🖨️ Print Delivery Challan
             </button>
 
             <div className="dc-page">
@@ -29,7 +29,7 @@ export function DeliveryChallan({ data }) {
                 )}
                 {data.verifiedAt && (
                     <div className="dc-verified-stamp">
-                        VERIFIED
+                        ✓ VERIFIED
                         <br />
                         <small>{new Date(data.verifiedAt).toLocaleDateString()}</small>
                     </div>
@@ -37,27 +37,39 @@ export function DeliveryChallan({ data }) {
 
                 {/* Header */}
                 <div className="dc-header">
-                    <h2>DELIVERY CHALLAN</h2>
+                    <h2 className="dc-title">DELIVERY CHALLAN</h2>
                     <p className="company-name">
                         <strong>HANDY THINK ENGINEERING UNIT - II</strong>
                     </p>
-                    <p>(An ISO 9001-2015 Certified Company)</p>
-                    <p>
+                    <p className="company-subtitle">(An ISO 9001-2015 Certified Company)</p>
+                    <p className="company-address">
                         2/8-20, SSV Dass Nagar, Neelambur, Coimbatore - 641062<br />
                         GSTIN: 33AXAPV0462C1ZW
                     </p>
                 </div>
+
                 {/* Meta */}
                 <div className="dc-meta">
-                    <div><strong>DC No:</strong> {data.dc_no}</div>
-                    <div><strong>Date:</strong> {new Date(data.date).toLocaleDateString()}</div>
+                    <div className="dc-meta-item">
+                        <span className="dc-label">DC No:</span>
+                        <span className="dc-value">{data.dc_no}</span>
+                    </div>
+                    <div className="dc-meta-item">
+                        <span className="dc-label">Date:</span>
+                        <span className="dc-value">{new Date(data.date).toLocaleDateString()}</span>
+                    </div>
                 </div>
-                <p>
-                    <strong>To M/s:</strong> {data.toMs}
-                </p>
-                <p>
-                    <strong>Party's GSTIN:</strong> ____________
-                </p>
+
+                <div className="dc-party-info">
+                    <div className="dc-info-row">
+                        <span className="dc-label">To M/s:</span>
+                        <span className="dc-value">{data.toMs || '________________'}</span>
+                    </div>
+                    <div className="dc-info-row">
+                        <span className="dc-label">Party's GSTIN:</span>
+                        <span className="dc-value">________________________</span>
+                    </div>
+                </div>
 
                 {/* Table */}
                 <table className="dc-table">
@@ -87,12 +99,12 @@ export function DeliveryChallan({ data }) {
 
                             return (
                                 <tr key={i}>
-                                    <td style={{ textAlign: 'center' }}>{i + 1}</td>
-                                    <td>{r.material_code}</td>
-                                    <td style={{ textAlign: 'center' }}>{qty}</td>
-                                    <td style={{ textAlign: 'right' }}>{format(price)}</td>
-                                    <td style={{ textAlign: 'right' }}>{format(amount)}</td>
-                                    <td>{r.remarks}</td>
+                                    <td style={{ textAlign: 'center', width: '50px' }}>{i + 1}</td>
+                                    <td style={{ textAlign: 'left' }}>{r.material_code}</td>
+                                    <td style={{ textAlign: 'center', width: '80px' }}>{qty}</td>
+                                    <td style={{ textAlign: 'right', width: '100px' }}>{format(price)}</td>
+                                    <td style={{ textAlign: 'right', width: '100px' }}>{format(amount)}</td>
+                                    <td style={{ textAlign: 'left', fontSize: '12px', color: '#555' }}>{r.remarks || '-'}</td>
                                 </tr>
                             );
                         })}
@@ -124,12 +136,14 @@ export function DeliveryChallan({ data }) {
                 {/* Footer */}
                 <div className="dc-footer">
                     <div className="receiver-sign">
-                        Receiver’s Signature & Seal
+                        <div style={{ height: '40px' }}></div>
+                        Receiver's Signature & Seal
                     </div>
 
                     <div className="company-sign">
-                        For HANDY THINK ENGINEERING UNIT - II<br /><br />
-                        Authorised Signatory
+                        <div style={{ height: '40px' }}></div>
+                        For HANDY THINK ENGINEERING UNIT - II<br/>
+                        <strong>Authorised Signatory</strong>
                     </div>
                 </div>
             </div>

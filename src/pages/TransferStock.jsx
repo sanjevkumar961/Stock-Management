@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import Select from 'react-select';
 import { apiGet, apiPost } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../component/ToastContext';
@@ -158,99 +159,125 @@ export default function TransferStock() {
         }
     }
 
-    if (loading) return <div style={{ textAlign: 'center', padding: 32 }}>Loading…</div>;
+    if (loading) return <div style={styles.center}>Loading…</div>;
 
     return (
-        <div className='page'>
-            <h2 className='page-title'>Transfer Stock</h2>
+        <div style={styles.container}>
+            <h2 style={styles.title}>🔄 Transfer Stock Between Warehouses</h2>
 
             {/* Header Card */}
-            <div className='card'>
-                <div className='grid-2'>
-                    <select value={fromWh} onChange={e => setFromWh(e.target.value)}>
-                        <option value="">From Warehouse</option>
-                        {warehouses.map(w => (
-                            <option key={w.warehouse_id} value={w.warehouse_id}>
-                                {w.warehouse_name}
-                            </option>
-                        ))}
-                    </select>
+            <div style={styles.card}>
+                <div style={styles.grid2}>
+                    <div>
+                        <label style={styles.label}>From Warehouse</label>
+                        <select value={fromWh} onChange={e => setFromWh(e.target.value)} style={styles.input}>
+                            <option value="">Select warehouse</option>
+                            {warehouses.map(w => (
+                                <option key={w.warehouse_id} value={w.warehouse_id}>
+                                    {w.warehouse_name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                    <select value={toWh} onChange={e => setToWh(e.target.value)}>
-                        <option value="">To Warehouse</option>
-                        {toWarehouseOptions.map(w => (
-                            <option key={w.warehouse_id} value={w.warehouse_id}>
-                                {w.warehouse_name}
-                            </option>
-                        ))}
-                    </select>
+                    <div>
+                        <label style={styles.label}>To Warehouse</label>
+                        <select value={toWh} onChange={e => setToWh(e.target.value)} style={styles.input}>
+                            <option value="">Select warehouse</option>
+                            {toWarehouseOptions.map(w => (
+                                <option key={w.warehouse_id} value={w.warehouse_id}>
+                                    {w.warehouse_name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                    <input
-                        placeholder="To M/s"
-                        value={toMs}
-                        onChange={e => setToMs(e.target.value)}
-                    />
+                    <div>
+                        <label style={styles.label}>To M/s (Company)</label>
+                        <input
+                            placeholder="Optional"
+                            value={toMs}
+                            onChange={e => setToMs(e.target.value)}
+                            style={styles.input}
+                        />
+                    </div>
 
-                    <input
-                        placeholder="Prepared by"
-                        value={preparedBy}
-                        onChange={e => setPreparedBy(e.target.value)}
-                    />
+                    <div>
+                        <label style={styles.label}>Prepared by</label>
+                        <input
+                            placeholder="Your email"
+                            value={preparedBy}
+                            onChange={e => setPreparedBy(e.target.value)}
+                            style={styles.input}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Materials Card */}
-            <div className='card'>
+            <div style={styles.card}>
+                <h3 style={styles.sectionTitle}>📦 Materials to Transfer</h3>
                 <table style={styles.table}>
                     <thead>
                         <tr>
-                            <th>Material</th>
-                            <th style={{ width: 100 }}>Qty</th>
-                            <th>Remarks</th>
-                            <th style={{ width: 40 }}></th>
+                            <th style={styles.th}>Material</th>
+                            <th style={{ ...styles.th, width: 120 }}>Quantity</th>
+                            <th style={styles.th}>Remarks</th>
+                            <th style={{ ...styles.th, width: 50, textAlign: 'center' }}>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map((r, i) => (
-                            <tr key={i}>
-                                <td>
-                                    <select
-                                        value={r.material_code}
-                                        onChange={e => updateRow(i, 'material_code', e.target.value)}
-                                    >
-                                        <option value="">Select material</option>
-                                        {getSelectableMaterials(i).map(m => (
-                                            <option key={m.material_code} value={m.material_code}>
-                                                {m.material_name} (Stock: {m.current_stock})
-                                            </option>
-                                        ))}
-                                    </select>
+                            <tr key={i} style={styles.tableRow}>
+                                <td style={styles.td}>
+                                    <Select
+                                        options={getSelectableMaterials(i).map(m => ({
+                                            value: m.material_code,
+                                            label: `${m.material_name} (Stock: ${m.current_stock})`
+                                        }))}
+                                        value={r.material_code ? { value: r.material_code, label: getSelectableMaterials(i).find(m => m.material_code === r.material_code)?.material_name || '' } : null}
+                                        onChange={option => updateRow(i, 'material_code', option?.value || '')}
+                                        isClearable
+                                        isSearchable
+                                        placeholder="Select material..."
+                                        styles={{
+                                            control: (base) => ({
+                                                ...base,
+                                                borderRadius: 4,
+                                                border: '1px solid #d0d7e0',
+                                                minHeight: 36
+                                            })
+                                        }}
+                                    />
                                 </td>
 
-                                <td>
+                                <td style={styles.td}>
                                     <input
                                         type="number"
                                         min="1"
                                         max={getCurrentStock(r.material_code)}
                                         value={r.quantity}
                                         onChange={e => updateRow(i, 'quantity', e.target.value)}
+                                        style={styles.input}
                                     />
                                 </td>
 
-                                <td>
+                                <td style={styles.td}>
                                     <input
-                                        placeholder="Optional"
+                                        placeholder="Optional notes"
                                         value={r.remarks}
                                         onChange={e => updateRow(i, 'remarks', e.target.value)}
+                                        style={styles.input}
                                     />
                                 </td>
 
-                                <td>
+                                <td style={{ ...styles.td, textAlign: 'center' }}>
                                     <button
-                                        className="icon-btn"
+                                        style={styles.deleteBtn}
                                         onClick={() => removeRow(i)}
+                                        title="Remove row"
                                     >
-                                        ×
+                                        ✕
                                     </button>
                                 </td>
                             </tr>
@@ -259,18 +286,18 @@ export default function TransferStock() {
                 </table>
 
                 <button style={styles.addBtn} onClick={addRow}>
-                    + Add Material
+                    ➕ Add Material
                 </button>
             </div>
 
             {/* Actions */}
-            <div className="action-bar">
+            <div style={styles.actionBar}>
                 <button
-                    className="btn-primary"
+                    style={styles.submitBtn}
                     onClick={submit}
                     disabled={submitting}
                 >
-                    {submitting ? 'Processing…' : 'Submit & Generate DC'}
+                    {submitting ? '⏳ Processing…' : '✓ Submit & Generate DC'}
                 </button>
             </div>
             {dcData && <DeliveryChallan data={dcData} />}
@@ -279,16 +306,123 @@ export default function TransferStock() {
 }
 
 const styles = {
+    container: {
+        padding: '24px',
+        maxWidth: 1200,
+        margin: '0 auto',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+    },
+    title: {
+        marginBottom: 24,
+        fontSize: 28,
+        fontWeight: 700,
+        color: '#1a1a1a',
+        letterSpacing: '-0.5px'
+    },
+    center: {
+        padding: 48,
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#666'
+    },
+    card: {
+        padding: 24,
+        border: '1px solid #e0e0e0',
+        borderRadius: 12,
+        background: '#fff',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        marginBottom: 24
+    },
+    grid2: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: 16
+    },
+    label: {
+        display: 'block',
+        fontWeight: 600,
+        color: '#2c3e50',
+        marginBottom: 8,
+        fontSize: 14
+    },
+    input: {
+        width: '100%',
+        padding: '10px 12px',
+        border: '1px solid #d0d7e0',
+        borderRadius: 6,
+        fontSize: 14,
+        fontFamily: 'inherit',
+        background: '#fff',
+        color: '#2c3e50',
+        boxSizing: 'border-box'
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 700,
+        color: '#1a1a1a',
+        marginBottom: 16,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+    },
     table: {
         width: '100%',
-        borderCollapse: 'collapse'
+        borderCollapse: 'collapse',
+        marginBottom: 16
+    },
+    th: {
+        padding: '12px 16px',
+        textAlign: 'left',
+        fontWeight: 600,
+        color: '#2c3e50',
+        fontSize: 13,
+        background: '#f5f7fa',
+        border: 'none',
+        borderBottom: '2px solid #e0e6ed'
+    },
+    tableRow: {
+        borderBottom: '1px solid #e8ecf1'
+    },
+    td: {
+        padding: '14px 16px',
+        color: '#34495e',
+        fontSize: 14
     },
     addBtn: {
-        marginTop: 12,
-        padding: '10px 14px',
+        padding: '10px 16px',
         fontWeight: 600,
-        borderRadius: 8,
-        border: '1px dashed #555',
-        background: '#f9f9f9'
+        borderRadius: 6,
+        border: '2px dashed #3498db',
+        background: '#f0f8ff',
+        color: '#3498db',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease'
+    },
+    deleteBtn: {
+        padding: '6px 10px',
+        fontWeight: 600,
+        borderRadius: 4,
+        border: 'none',
+        background: '#ffebee',
+        color: '#c62828',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease'
+    },
+    actionBar: {
+        marginTop: 24,
+        display: 'flex',
+        gap: 12
+    },
+    submitBtn: {
+        flex: 1,
+        padding: '12px 20px',
+        background: '#27ae60',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 6,
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        fontSize: 15
     }
 };

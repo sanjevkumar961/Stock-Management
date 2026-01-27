@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import Select from 'react-select';
 import { apiPost, apiGet } from '../api/api';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../component/ToastContext';
@@ -72,6 +73,15 @@ export default function NewTransaction() {
         return acc;
       }, {});
   }, [materials, selectedMaterial]);
+
+  const uniqueMaterialOptions = useMemo(() => {
+    return Array.from(
+      new Map(materials.map(m => [m.material_code, m])).values()
+    ).map(m => ({
+      value: m.material_code,
+      label: m.material_name
+    }));
+  }, [materials]);
 
   const fromWarehouseOptions = useMemo(() => {
     if (!form.material_code) return [];
@@ -161,23 +171,25 @@ export default function NewTransaction() {
 
   return (
     <div style={styles.container}>
-      <h2>New Transaction</h2>
+      <h2 style={styles.title}>➕ New Transaction</h2>
 
       <div style={styles.card}>
         <label>Material</label>
-        <select
-          value={form.material_code}
-          onChange={e => setForm({ ...form, material_code: e.target.value })}
-        >
-          <option value="">Select material</option>
-          {Array.from(
-            new Map(materials.map(m => [m.material_code, m])).values()
-          ).map(m => (
-            <option key={m.material_code} value={m.material_code}>
-              {m.material_name}
-            </option>
-          ))}
-        </select>
+        <Select
+          options={uniqueMaterialOptions}
+          value={form.material_code ? { value: form.material_code, label: uniqueMaterialOptions.find(m => m.value === form.material_code)?.label } : null}
+          onChange={option => setForm({ ...form, material_code: option?.value || '' })}
+          isClearable
+          isSearchable
+          placeholder="Select material..."
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderRadius: 4,
+              border: '1px solid #ccc'
+            })
+          }}
+        />
 
         <label>Action</label>
         <select
@@ -262,22 +274,38 @@ export default function NewTransaction() {
 ================================ */
 const styles = {
   container: {
-    padding: 16,
-    maxWidth: 520,
-    margin: '0 auto'
+    padding: '24px',
+    maxWidth: 600,
+    margin: '0 auto',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+  },
+  title: {
+    marginBottom: 24,
+    fontSize: 28,
+    fontWeight: 700,
+    color: '#1a1a1a',
+    letterSpacing: '-0.5px'
   },
   card: {
     display: 'grid',
-    gap: 12,
-    padding: 16,
-    borderRadius: 10,
-    border: '1px solid #ddd',
-    background: '#fff'
+    gap: 18,
+    padding: 28,
+    borderRadius: 12,
+    border: '1px solid #e0e0e0',
+    background: '#fff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
   },
   button: {
     marginTop: 12,
-    padding: '12px 16px',
-    fontSize: 16,
-    fontWeight: 600
+    padding: '12px 20px',
+    fontSize: 15,
+    fontWeight: 600,
+    background: '#2c3e50',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
   }
 };

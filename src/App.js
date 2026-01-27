@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { ToastProvider } from './component/ToastContext';
+import './App.css';
 
 import Login from './pages/login';
 import Materials from './pages/Materials';
@@ -29,54 +30,74 @@ function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div>
+    <div style={styles.appContainer}>
       <header style={styles.header}>
-        <div style={styles.brand}>Inventory System</div>
+        <div style={styles.headerContent}>
+          <div style={styles.brand}>
+            <span style={styles.brandIcon}>📦</span>
+            <span>Stock Management</span>
+          </div>
 
-        {user && (
-          <>
-            <button
-              style={styles.hamburger}
-              onClick={() => setMenuOpen(prev => !prev)}
-            >
-              ☰
-            </button>
-
-            <nav
-              style={{
-                ...styles.nav,
-                ...(menuOpen ? styles.navMobileOpen : {}),
-              }}
-            >
-              <NavLink to="/" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
-                Home
-              </NavLink>
-              <NavLink to="/new" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
-                New Transaction
-              </NavLink>
-              <NavLink to="/transfer" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
-                Transfer Stock
-              </NavLink>
-              {user.role === 'manager' && (
-                <>
-                  <NavLink to="/transactions" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
-                    Transactions
-                  </NavLink>
-                  <NavLink to="/reprintdc" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
-                    Reprint DC
-                  </NavLink>
-                </>
+          {user && (
+            <>
+              {menuOpen && (
+                <button
+                  className="hamburger-btn"
+                  style={styles.hamburger}
+                  onClick={() => setMenuOpen(false)}
+                  title="Close Menu"
+                >
+                  ✕
+                </button>
               )}
-            </nav>
 
-            <div style={styles.user}>
-              <span>{user.email}</span>
-              <button onClick={logout} style={styles.logout}>
-                Logout
-              </button>
-            </div>
-          </>
-        )}
+              {!menuOpen && (
+                <button
+                  className="hamburger-btn"
+                  style={styles.hamburger}
+                  onClick={() => setMenuOpen(true)}
+                  title="Open Menu"
+                >
+                  ☰
+                </button>
+              )}
+
+              <nav
+                style={{
+                  ...styles.nav,
+                  ...(menuOpen ? styles.navMobileOpen : {display: 'none'}),
+                }}
+              >
+                <NavLink to="/" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                  📚 Home
+                </NavLink>
+                <NavLink to="/new" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                  ➕ New
+                </NavLink>
+                <NavLink to="/transfer" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                  🔄 Transfer
+                </NavLink>
+                {user.role === 'manager' && (
+                  <>
+                    <NavLink to="/transactions" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                      💳 Transactions
+                    </NavLink>
+                    <NavLink to="/reprintdc" style={({ isActive }) => navStyle(isActive)} onClick={() => setMenuOpen(false)}>
+                      📄 Reprint
+                    </NavLink>
+                  </>
+                )}
+              </nav>
+
+              <div style={styles.user}>
+                <span style={styles.userEmail}>👤 {user.email}</span>
+                <button onClick={logout} style={styles.logout}>
+                  🚪 Logout
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       <main style={styles.main}>{children}</main>
@@ -145,79 +166,126 @@ export default function App() {
    Styles
 ================================ */
 const styles = {
+  appContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: '#f5f7fa'
+  },
   header: {
-    padding: '12px 16px',
-    borderBottom: '1px solid #ddd',
+    background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+    color: '#fff',
+    padding: '0',
+    borderBottom: '3px solid #e74c3c',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
+  },
+  headerContent: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: '14px 16px',
+    maxWidth: '100%',
     flexWrap: 'wrap',
-    position: 'relative'
+    position: 'relative',
+    gap: 12
   },
-  brand: { fontWeight: 700, fontSize: 16 },
+  brand: {
+    fontWeight: 700,
+    fontSize: 18,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    letterSpacing: '-0.3px',
+    flexShrink: 0,
+    minWidth: 'auto'
+  },
+  brandIcon: {
+    fontSize: 24,
+    display: 'flex',
+    alignItems: 'center'
+  },
   nav: {
     display: 'flex',
-    gap: 12,
+    gap: 4,
     flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   navMobileOpen: {
     flexDirection: 'column',
     position: 'absolute',
-    top: '60px',
+    top: '100%',
     left: 0,
     right: 0,
-    background: '#fff',
+    background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
     padding: '12px 16px',
-    borderBottom: '1px solid #ddd',
-    zIndex: 10
+    borderBottom: '2px solid #e74c3c',
+    zIndex: 10,
+    gap: 8,
+    marginLeft: 0,
+    width: '100%',
+    boxSizing: 'border-box'
   },
   hamburger: {
     display: 'none',
     fontSize: 24,
     background: 'none',
     border: 'none',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    color: '#fff',
+    transition: 'transform 0.3s ease',
+    padding: '4px 8px',
+    flexShrink: 0,
+    margin: '0 auto 0 auto'
   },
-  user: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 },
-  logout: { padding: '4px 8px', cursor: 'pointer' },
-  main: { padding: 16 }
+  user: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    fontSize: 14,
+    fontWeight: 500,
+    flexWrap: 'nowrap',
+    flexShrink: 0
+  },
+  userEmail: {
+    padding: '6px 12px',
+    background: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+    whiteSpace: 'nowrap'
+  },
+  logout: {
+    padding: '8px 16px',
+    cursor: 'pointer',
+    background: '#e74c3c',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    fontWeight: 600,
+    transition: 'all 0.3s ease',
+    fontSize: 13,
+    whiteSpace: 'nowrap'
+  },
+  main: {
+    flex: 1,
+    padding: 0,
+    background: '#f5f7fa'
+  }
 };
 
 function navStyle(active) {
   return {
     textDecoration: 'none',
     fontWeight: 600,
-    padding: '6px 10px',
+    padding: '8px 14px',
     borderRadius: 6,
-    color: active ? '#1976d2' : '#333',
-    background: active ? '#e3f2fd' : 'transparent'
+    color: active ? '#fff' : 'rgba(255,255,255,0.8)',
+    background: active ? 'rgba(231, 76, 60, 0.3)' : 'transparent',
+    transition: 'all 0.3s ease',
+    border: active ? '1px solid #e74c3c' : '1px solid transparent',
+    fontSize: 13,
+    display: 'inline-block'
   };
-}
-
-/* ===============================
-   Responsive Media Query
-================================ */
-if (typeof window !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @media (max-width: 768px) {
-      nav {
-        display: none;
-      }
-      button[style*="hamburger"] {
-        display: block;
-      }
-    }
-    @media (min-width: 769px) {
-      nav {
-        display: flex !important;
-        position: static !important;
-        flex-direction: row !important;
-      }
-      button[style*="hamburger"] {
-        display: none !important;
-      }
-    }
-  `;
-  document.head.appendChild(style);
 }
