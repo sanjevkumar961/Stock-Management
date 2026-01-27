@@ -240,12 +240,22 @@ export default function TransferStock() {
                                         isClearable
                                         isSearchable
                                         placeholder="Select material..."
+                                        menuPortalTarget={document.body}
                                         styles={{
                                             control: (base) => ({
                                                 ...base,
                                                 borderRadius: 4,
                                                 border: '1px solid #d0d7e0',
-                                                minHeight: 36
+                                                minHeight: 36,
+                                                fontSize: 'clamp(12px, 2.5vw, 14px)'
+                                            }),
+                                            menuPortal: (base) => ({
+                                                ...base,
+                                                zIndex: 9999
+                                            }),
+                                            menu: (base) => ({
+                                                ...base,
+                                                zIndex: 9999
                                             })
                                         }}
                                     />
@@ -307,115 +317,126 @@ export default function TransferStock() {
 
 const styles = {
     container: {
-        padding: '24px',
+        padding: 'clamp(12px, 4vw, 24px)',
         maxWidth: 1200,
         margin: '0 auto',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif'
     },
     title: {
-        marginBottom: 24,
-        fontSize: 28,
+        marginBottom: 'clamp(16px, 4vw, 24px)',
+        fontSize: 'clamp(20px, 6vw, 28px)',
         fontWeight: 700,
         color: '#1a1a1a',
         letterSpacing: '-0.5px'
     },
     center: {
-        padding: 48,
+        padding: 'clamp(24px, 8vw, 48px)',
         textAlign: 'center',
         fontSize: 16,
         color: '#666'
     },
     card: {
-        padding: 24,
+        padding: 'clamp(12px, 4vw, 24px)',
         border: '1px solid #e0e0e0',
         borderRadius: 12,
         background: '#fff',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        marginBottom: 24
+        marginBottom: 'clamp(16px, 4vw, 24px)',
+        overflowX: 'auto'
     },
     grid2: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: 16
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: 'clamp(12px, 3vw, 16px)'
     },
     label: {
         display: 'block',
         fontWeight: 600,
         color: '#2c3e50',
         marginBottom: 8,
-        fontSize: 14
+        fontSize: 'clamp(12px, 2.5vw, 14px)'
     },
     input: {
         width: '100%',
-        padding: '10px 12px',
+        padding: 'clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 12px)',
         border: '1px solid #d0d7e0',
         borderRadius: 6,
-        fontSize: 14,
+        fontSize: 'clamp(12px, 2.5vw, 14px)',
         fontFamily: 'inherit',
         background: '#fff',
         color: '#2c3e50',
         boxSizing: 'border-box'
     },
     sectionTitle: {
-        fontSize: 16,
+        fontSize: 'clamp(14px, 3.5vw, 16px)',
         fontWeight: 700,
         color: '#1a1a1a',
         marginBottom: 16,
         display: 'flex',
         alignItems: 'center',
-        gap: 8
+        gap: 8,
+        flexWrap: 'wrap'
     },
     table: {
         width: '100%',
         borderCollapse: 'collapse',
-        marginBottom: 16
+        marginBottom: 16,
+        minWidth: 'fit-content'
     },
     th: {
-        padding: '12px 16px',
+        padding: 'clamp(8px, 2vw, 12px) clamp(10px, 2vw, 16px)',
         textAlign: 'left',
         fontWeight: 600,
         color: '#2c3e50',
-        fontSize: 13,
+        fontSize: 'clamp(11px, 2vw, 13px)',
         background: '#f5f7fa',
         border: 'none',
-        borderBottom: '2px solid #e0e6ed'
+        borderBottom: '2px solid #e0e6ed',
+        whiteSpace: 'nowrap'
     },
     tableRow: {
         borderBottom: '1px solid #e8ecf1'
     },
     td: {
-        padding: '14px 16px',
+        padding: 'clamp(10px, 2vw, 14px) clamp(10px, 2vw, 16px)',
         color: '#34495e',
-        fontSize: 14
+        fontSize: 'clamp(12px, 2.5vw, 14px)',
+        minWidth: 'fit-content'
     },
     addBtn: {
-        padding: '10px 16px',
+        padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px)',
         fontWeight: 600,
         borderRadius: 6,
         border: '2px dashed #3498db',
         background: '#f0f8ff',
         color: '#3498db',
         cursor: 'pointer',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        fontSize: 'clamp(12px, 2.5vw, 14px)',
+        width: '100%'
     },
     deleteBtn: {
-        padding: '6px 10px',
+        padding: 'clamp(4px, 1.5vw, 6px) clamp(8px, 2vw, 10px)',
         fontWeight: 600,
         borderRadius: 4,
         border: 'none',
         background: '#ffebee',
         color: '#c62828',
         cursor: 'pointer',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        fontSize: 'clamp(12px, 2.5vw, 14px)',
+        whiteSpace: 'nowrap'
     },
     actionBar: {
-        marginTop: 24,
+        marginTop: 'clamp(16px, 4vw, 24px)',
         display: 'flex',
-        gap: 12
+        gap: 'clamp(8px, 3vw, 12px)',
+        flexWrap: 'wrap'
     },
     submitBtn: {
         flex: 1,
-        padding: '12px 20px',
+        minWidth: '150px',
+        padding: 'clamp(10px, 2vw, 12px) clamp(16px, 4vw, 20px)',
         background: '#27ae60',
         color: '#fff',
         border: 'none',
@@ -423,6 +444,6 @@ const styles = {
         fontWeight: 600,
         cursor: 'pointer',
         transition: 'all 0.3s ease',
-        fontSize: 15
+        fontSize: 'clamp(13px, 2.5vw, 15px)'
     }
 };

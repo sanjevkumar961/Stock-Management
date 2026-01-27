@@ -72,3 +72,141 @@
     font-size: 12px;
   }
 }
+
+/* ===============================
+   Mobile Responsive Tables
+================================ */
+
+/* Mobile: Table horizontal scroll */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  table thead,
+  table tbody,
+  table tr {
+    display: table;
+    width: 100%;
+  }
+
+  table th {
+    white-space: nowrap;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  table td {
+    white-space: nowrap;
+    padding: 10px 8px !important;
+  }
+
+  /* Ensure inputs don't overflow */
+  table input,
+  table select,
+  table textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    max-width: 100%;
+  }
+
+  /* Quantity and action columns narrower on mobile */
+  table th:nth-child(2),
+  table td:nth-child(2),
+  table th:nth-child(4),
+  table td:nth-child(4) {
+    width: 80px;
+    min-width: 80px;
+  }
+
+  table th:nth-child(3),
+  table td:nth-child(3) {
+    min-width: 120px;
+  }
+
+  table th:nth-child(1),
+  table td:nth-child(1) {
+    min-width: 150px;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+  table th {
+    font-size: 11px !important;
+    padding: 6px 6px !important;
+  }
+
+  table td {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+
+  table th:nth-child(2),
+  table td:nth-child(2),
+  table th:nth-child(4),
+  table td:nth-child(4) {
+    width: 70px;
+    min-width: 70px;
+  }
+
+  table th:nth-child(1),
+  table td:nth-child(1) {
+    min-width: 130px;
+  }
+
+  table th:nth-child(3),
+  table td:nth-child(3) {
+    min-width: 100px;
+  }
+}
+
+/* ===============================
+   React Select Dropdown Fix
+================================ */
+
+/* Ensure React Select dropdown is always visible */
+.css-b62m3t-container {
+  position: relative;
+  z-index: 100;
+}
+
+.css-14en46o-control {
+  position: relative;
+  z-index: 100;
+}
+
+/* Portal-based menu positioning */
+.react-select__menu-portal {
+  position: fixed !important;
+  z-index: 9999 !important;
+  top: auto !important;
+}
+
+.react-select__menu {
+  position: absolute;
+  z-index: 9999;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+/* Remove clipping from table cells containing select */
+table td .css-b62m3t-container {
+  position: relative;
+  z-index: 100;
+}
+
+/* Ensure card doesn't clip dropdown */
+[style*="card"] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Override any overflow hidden on containers */
+table tbody tr {
+  position: relative;
+  z-index: auto;
+}
