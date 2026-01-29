@@ -6,6 +6,7 @@ export default function Transactions() {
   const { user, logout } = useAuth();
   const [rows, setRows] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   /* ===============================
@@ -16,8 +17,9 @@ export default function Transactions() {
 
     Promise.all([
       apiGet('transactions', user, logout),
-      apiGet('materials', user, logout)
-    ]).then(([txRes, matRes]) => {
+      apiGet('materials', user, logout),
+      apiGet('warehouses', user, logout)
+    ]).then(([txRes, matRes, whRes]) => {
       if (!mounted) return;
 
       if (txRes.success) setRows(txRes.data);
@@ -30,6 +32,14 @@ export default function Transactions() {
         setMaterials([...map.values()]);
       }
 
+      if (whRes.success) {
+        const map = new Map();
+        whRes.data.forEach(w => {
+          if (!map.has(w.warehouse_id)) map.set(w.warehouse_id, w);
+        });
+        setWarehouses([...map.values()]);
+      }
+
       setLoading(false);
     });
 
@@ -39,21 +49,27 @@ export default function Transactions() {
   /* ===============================
      Derived Data
   ================================ */
-  const rowsWithMaterialName = useMemo(() => {
-    if (!rows.length || !materials.length) return [];
+  const rowsWithName = useMemo(() => {
+    if (!rows.length || !materials.length || !warehouses.length) return [];
     return rows.map(r => ({
       ...r,
       material_name:
         materials.find(m => m.material_code === r.material_code)
-          ?.material_name || r.material_code
+          ?.material_name || r.material_code,
+      from_warehouse_name:
+        warehouses.find(w => w.warehouse_id === r.from_warehouse)
+          ?.warehouse_name || r.from_warehouse,
+      to_warehouse_name:
+        warehouses.find(w => w.warehouse_id === r.to_warehouse)
+          ?.warehouse_name || r.to_warehouse
     }));
-  }, [rows, materials]);
+  }, [rows, materials, warehouses]);
 
   if (loading) {
     return <div style={styles.center}>Loading transactions…</div>;
   }
 
-  if (!rowsWithMaterialName.length) {
+  if (!rowsWithName.length) {
     return <div style={styles.center}>No transactions found</div>;
   }
 
@@ -79,14 +95,14 @@ export default function Transactions() {
             </tr>
           </thead>
           <tbody>
-            {rowsWithMaterialName.map(t => (
+            {rowsWithName.map(t => (
               <tr key={t.txn_id}>
                 <td>{t.txn_id}</td>
                 <td>{t.material_name}</td>
                 <td>{t.quantity}</td>
                 <td>{formatType(t.type)}</td>
-                <td>{t.from_warehouse || '-'}</td>
-                <td>{t.to_warehouse || '-'}</td>
+                <td>{t.from_warehouse_name || '-'}</td>
+                <td>{t.to_warehouse_name || '-'}</td>
                 <td>{t.user_email}</td>
                 <td>{formatDate(t.timestamp)}</td>
                 <td>{t.dc_no || '-'}</td>
@@ -99,7 +115,7 @@ export default function Transactions() {
 
       {/* Mobile Cards */}
       <div className="mobile-only">
-        {rowsWithMaterialName.map(t => (
+        {rowsWithName.map(t => (
           <div key={t.txn_id} style={styles.card}>
             <div style={styles.cardHeader}>
               <strong style={{ fontSize: 16, color: '#1a1a1a' }}>{t.material_name}</strong>
@@ -107,8 +123,8 @@ export default function Transactions() {
             </div>
 
             <div style={styles.row}>📤 Type: <strong>{formatType(t.type)}</strong></div>
-            {t.from_warehouse && (<div style={styles.row}>📍 From: {t.from_warehouse}</div>)}
-            <div style={styles.row}>📌 To: {t.to_warehouse || '-'}</div>
+            {t.from_warehouse_name && (<div style={styles.row}>📍 From: {t.from_warehouse_name}</div>)}
+            <div style={styles.row}>📌 To: {t.to_warehouse_name || '-'}</div>
             <div style={styles.row}>👤 User: {t.user_email}</div>
             <div style={styles.row}>📅 {formatDate(t.timestamp)}</div>
             {t.dc_no && (<div style={styles.row}>📋 DC NO: <strong>{t.dc_no}</strong></div>)}

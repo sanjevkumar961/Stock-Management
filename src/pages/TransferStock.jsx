@@ -91,7 +91,7 @@ export default function TransferStock() {
     }
 
     const toWarehouseOptions = useMemo(() => {
-            return warehouses.filter(w => w.warehouse_id !== fromWh);
+        return warehouses.filter(w => w.warehouse_id !== fromWh);
     }, [warehouses, fromWh]);
 
     async function submit() {
@@ -246,8 +246,27 @@ export default function TransferStock() {
                                                 ...base,
                                                 borderRadius: 4,
                                                 border: '1px solid #d0d7e0',
+                                                height: 36,
                                                 minHeight: 36,
-                                                fontSize: 'clamp(12px, 2.5vw, 14px)'
+                                                fontSize: 'clamp(12px, 2.5vw, 14px)',
+                                                overflow: 'hidden'
+                                            }),
+                                            valueContainer: (base) => ({
+                                                ...base,
+                                                height: '100%',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap'
+                                            }),
+                                            input: (base) => ({
+                                                ...base,
+                                                margin: 0,
+                                                padding: 0,
+                                                height: '100%'
+                                            }),
+                                            indicatorsContainer: (base) => ({
+                                                ...base,
+                                                height: '100%'
                                             }),
                                             menuPortal: (base) => ({
                                                 ...base,
@@ -381,7 +400,8 @@ const styles = {
         width: '100%',
         borderCollapse: 'collapse',
         marginBottom: 16,
-        minWidth: 'fit-content'
+        minWidth: 'fit-content',
+        tableLayout: 'fixed'
     },
     th: {
         padding: 'clamp(8px, 2vw, 12px) clamp(10px, 2vw, 16px)',
