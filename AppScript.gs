@@ -144,41 +144,57 @@ function onEdit(e) {
 /* ===== Settings helpers (txn id) ===== */
 function getNextTxnId() {
   ensureSheetsOrThrow();
-  const sh = getSheet(SHEETS.SETTINGS);
-  const lastRow = Math.max(sh.getLastRow(), 1);
-  const values = sh.getRange(1, 1, lastRow, 2).getValues();
-  for (let i = 0; i < values.length; i++) {
-    if (String(values[i][0]).trim() === 'next_txn_id') {
-      const n = parseInt(values[i][1], 10);
-      if (isNaN(n)) throw new Error('Invalid next_txn_id in Settings (not a number)');
-      sh.getRange(i + 1, 2).setValue(n + 1);
-      return 'TXN' + String(n);
+  // Use script lock to prevent race conditions
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000); // 10 second timeout
+  
+  try {
+    const sh = getSheet(SHEETS.SETTINGS);
+    const lastRow = Math.max(sh.getLastRow(), 1);
+    const values = sh.getRange(1, 1, lastRow, 2).getValues();
+    for (let i = 0; i < values.length; i++) {
+      if (String(values[i][0]).trim() === 'next_txn_id') {
+        const n = parseInt(values[i][1], 10);
+        if (isNaN(n)) throw new Error('Invalid next_txn_id in Settings (not a number)');
+        sh.getRange(i + 1, 2).setValue(n + 1);
+        return 'TXN' + String(n);
+      }
     }
+    // create default if missing
+    sh.appendRow(['next_txn_id', 2]);
+    return 'TXN0001';
+  } finally {
+    lock.releaseLock();
   }
-  // create default if missing
-  sh.appendRow(['next_txn_id', 2]);
-  return 'TXN0001';
 }
 
 /* ===== Settings helpers (dc no) ===== */
 function getNextDcNo(increment = false) {
   ensureSheetsOrThrow();
-  const sh = getSheet(SHEETS.SETTINGS);
-  const lastRow = Math.max(sh.getLastRow(), 1);
-  const values = sh.getRange(1, 1, lastRow, 2).getValues();
-  for (let i = 0; i < values.length; i++) {
-    if (String(values[i][0]).trim() === 'next_dc_no') {
-      const n = parseInt(values[i][1], 10);
-      if (isNaN(n)) throw new Error('Invalid next_dc_no in Settings (not a number)');
-      if (increment == true) {
-        sh.getRange(i + 1, 2).setValue(n + 1);
+  // Use script lock to prevent race conditions
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000); // 10 second timeout
+  
+  try {
+    const sh = getSheet(SHEETS.SETTINGS);
+    const lastRow = Math.max(sh.getLastRow(), 1);
+    const values = sh.getRange(1, 1, lastRow, 2).getValues();
+    for (let i = 0; i < values.length; i++) {
+      if (String(values[i][0]).trim() === 'next_dc_no') {
+        const n = parseInt(values[i][1], 10);
+        if (isNaN(n)) throw new Error('Invalid next_dc_no in Settings (not a number)');
+        if (increment == true) {
+          sh.getRange(i + 1, 2).setValue(n + 1);
+        }
+        return String(n);
       }
-      return String(n);
     }
+    // create default if missing
+    sh.appendRow(['next_dc_no', 2]);
+    return '1';
+  } finally {
+    lock.releaseLock();
   }
-  // create default if missing
-  sh.appendRow(['next_dc_no', 2]);
-  return '1';
 }
 
 /* ===== Core operations ===== */
@@ -459,9 +475,12 @@ function createTransaction(data) {
 
 /* ===== Web API entry point ===== */
 function createSessionToken(email) {
-  return Utilities.base64Encode(
-    email + '|' + new Date().getTime() + '|' + Math.random()
-  );
+  // Use secure UUID instead of Base64-encoded weak token
+  const uuid = Utilities.getUuid();
+  // Store email mapping in cache for verification
+  const cacheKey = 'token_' + uuid;
+  CacheService.getScriptCache().put(cacheKey, email, 24 * 60 * 60);
+  return uuid;
 }
 
 function loginUser(email, password) {
@@ -485,8 +504,6 @@ function loginUser(email, password) {
   }
 
   const token = createSessionToken(email);
-
-  CacheService.getScriptCache().put(token, email, 24 * 60 * 60); // 1 day
 
   return {
     token,
@@ -512,7 +529,8 @@ function doGet(e) {
     if (!e.parameter?.user_email || !token) {
       return jsonResponse({ success: false, error: 'auth_required' });
     }
-    const email = CacheService.getScriptCache().get(token);
+    const cacheKey = 'token_' + token;
+    const email = CacheService.getScriptCache().get(cacheKey);
     if (!email) {
       return jsonResponse({ success: false, error: 'session_expired' });
     }
@@ -620,7 +638,8 @@ function doPost(e) {
       return jsonResponse({ success: false, error: 'auth_required' });
     }
 
-    const email = CacheService.getScriptCache().get(token);
+    const cacheKey = 'token_' + token;
+    const email = CacheService.getScriptCache().get(cacheKey);
     if (!email) {
       return jsonResponse({ success: false, error: 'session_expired' });
     }

@@ -365,7 +365,15 @@ button:disabled {
   border: 1px solid #333;
 }
 
-.dc-table th,
+.dc-table th {
+  border: 1px solid #333;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  background: #f5f5f5;
+  font-weight: 700;
+}
+
 .dc-table td {
   border: 1px solid #333;
   padding: 8px;
@@ -373,19 +381,13 @@ button:disabled {
   font-size: 12px;
 }
 
-.dc-table th {
-  background: #f5f5f5;
-  font-weight: 700;
-  text-align: center;
-}
-
 .dc-table tr {
   page-break-inside: avoid;
 }
 
-.dc-table tbody tr:nth-child(even) {
+/* .dc-table tbody tr:nth-child(even) {
   background: #fafafa;
-}
+} */
 
 /* =========================
    TOTALS SECTION
@@ -418,7 +420,6 @@ button:disabled {
 .grand-total td {
   font-size: 13px;
   font-weight: 700;
-  background: #f5f5f5;
 }
 
 /* =========================
